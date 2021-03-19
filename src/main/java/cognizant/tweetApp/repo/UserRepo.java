@@ -82,4 +82,58 @@ public class UserRepo {
 		}
 	}
 
+	public boolean login(User us) {
+		boolean islogged = false;
+		connection = DbHandler.getConnection();
+		try {
+			preparedStatement = connection
+					.prepareStatement("SELECT user_email from user where user_email = ? and user_password=? ");
+			preparedStatement.setString(1, us.getEmail());
+			preparedStatement.setString(2, us.getPassword());
+			resultSet = preparedStatement.executeQuery();
+			while (resultSet.next()) {
+				String name = resultSet.getString("user_email");
+				if (name == null) {
+					islogged = false;
+				} else {
+					islogged = true;
+				}
+			}
+
+		} catch (SQLException e) {
+			System.err.println("Invalid Login Details");
+			islogged = false;
+		} finally {
+			try {
+				closedb();
+			} catch (SQLException sqlException) {
+				throw new RuntimeException("Connection is not closed properly");
+			}
+		}
+		return islogged;
+	}
+
+	public void resetPassword(String useremail, String npassword) {
+		connection = DbHandler.getConnection();
+		try {
+			preparedStatement = connection
+					.prepareStatement("UPDATE `user` SET `user_password` = ? WHERE (`user_email` = ?)");
+
+			preparedStatement.setString(1, npassword);
+			preparedStatement.setString(2, useremail);
+			preparedStatement.executeUpdate();
+			System.err.println("Password Reset Success");
+
+		} catch (SQLException e) {
+			System.err.println("Unable to Reset Password");
+		} finally {
+			try {
+				closedb();
+			} catch (SQLException sqlException) {
+				throw new RuntimeException("Connection is not closed properly");
+			}
+		}
+
+	}
+
 }
